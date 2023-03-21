@@ -1,0 +1,107 @@
+{
+  "project_info": {
+    "project_number": "674292985031",
+    "firebase_url": "https://uxdx-48a34.firebaseio.com",
+    "project_id": "uxdx-48a34",
+    "storage_bucket": "uxdx-48a34.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674292985031:android:9d596d7a83cfc2e772a2e2",
+        "android_client_info": {
+          "package_name": "com.uxdx_checkin_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "674292985031-7m2etpp0pmcieb22kf2euv6lstor1bf2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASZ8rpY1Rd6OF8ynZDCqa0gzWZCdT8wtM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "674292985031-7m2etpp0pmcieb22kf2euv6lstor1bf2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "674292985031-ot1lbb33gos2slhuegn31la8gtg3kuu4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.uxdxleadscanner"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674292985031:android:a020f21bcea6b7b672a2e2",
+        "android_client_info": {
+          "package_name": "com.uxdxleadscannerapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "674292985031-4hn4r71iqejvccot7qario5vq36i2tbc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.uxdxleadscannerapp",
+            "certificate_hash": "5af805c8af85d9551ce71c509e04161cce65543d"
+          }
+        },
+        {
+          "client_id": "674292985031-i61o27125i3t5fprqh18bt1cesngjrll.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.uxdxleadscannerapp",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "674292985031-iq9jau9tr331gsg4mlf0an3ch9tug84p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.uxdxleadscannerapp",
+            "certificate_hash": "46eeb3aaaa0e4b1f573c2b6a922ddda164d6a1a5"
+          }
+        },
+        {
+          "client_id": "674292985031-7m2etpp0pmcieb22kf2euv6lstor1bf2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASZ8rpY1Rd6OF8ynZDCqa0gzWZCdT8wtM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "674292985031-7m2etpp0pmcieb22kf2euv6lstor1bf2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "674292985031-ot1lbb33gos2slhuegn31la8gtg3kuu4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.uxdxleadscanner"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
