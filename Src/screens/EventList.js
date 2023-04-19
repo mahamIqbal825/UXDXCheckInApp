@@ -38,7 +38,7 @@ function EventList({ navigation }) {
   const currentUser = auth().currentUser;
 
   useEffect(() => {
-    console.log("id", currentUser.uid);
+    // console.log("id", currentUser.uid);
     getCheckInLists(currentUser.uid);
   }, []);
   let listId = "";
@@ -47,11 +47,11 @@ function EventList({ navigation }) {
     const checkInListsQuery = await firestore()
       .collection("checkInLists/admins/" + uid)
       .get();
-    console.log("checkInListsQuery.docs", checkInListsQuery.docs);
+    // console.log("checkInListsQuery.docs", checkInListsQuery.docs);
     let acc = [];
     const checkInLists = checkInListsQuery.docs.map((doc) => {
       const data = doc.data();
-      console.log("list id", data.listId);
+      // console.log("list id", data.listId);
       // listId = data.listId;
       // setData(data)
       acc.push(data);
@@ -59,21 +59,21 @@ function EventList({ navigation }) {
     });
     const hydratedCheckInLists = await Promise.all(
       acc.map(async (checkInList) => {
-        console.log("checkInList.conferenceId", checkInList.conferenceId);
+        // console.log("checkInList.conferenceId", checkInList.conferenceId);
         const listDetails = await firestore()
           .collection("checkInLists/conferences/" + checkInList.conferenceId)
           .doc(checkInList.listId)
           .get();
         const listDetailsData = listDetails.data();
-        console.log("listDetailsData", listDetailsData);
+        // console.log("listDetailsData", listDetailsData);
         // console.log(
         //   'listDatezzz',
         //   listDetailsData.checkInList.listId.startDate,
         // );
-        console.log(
-          "listDetailsData[checkInList.listId].startDate",
-          listDetailsData[checkInList.listId].startDate
-        );
+        // console.log(
+        //   "listDetailsData[checkInList.listId].startDate",
+        //   listDetailsData[checkInList.listId].startDate
+        // );
         // listId = checkInList.listId;
 
         return {
@@ -85,9 +85,9 @@ function EventList({ navigation }) {
       })
     );
     setAllData(hydratedCheckInLists);
-    console.log("allData", allData);
+    // console.log("allData", allData);
 
-    console.log("hydratedCheckInLists", hydratedCheckInLists);
+    // console.log("hydratedCheckInLists", hydratedCheckInLists);
     let upCommingEvents = [];
     let pastEvents = [];
     let pastConferenceIds = [];
@@ -96,16 +96,16 @@ function EventList({ navigation }) {
     let todayDate = new Date(
       Date.UTC(myDate.getFullYear(), myDate.getMonth(), myDate.getDate())
     );
-    console.log("todayDate zzzzzzzzzzzzzzzz", todayDate);
+    // console.log("todayDate zzzzzzzzzzzzzzzz", todayDate);
     hydratedCheckInLists.forEach((element) => {
-      console.log("elements ", element);
+      // console.log("elements ", element);
       element.conferenceId = element[element.listId].conferenceId;
       if (element.startDate >= todayDate) {
         upCommingEvents.push(element);
         let index = upCommingConferenceIds.findIndex(
           (x) => x.conferenceId == element[element.listId].conferenceId
         );
-        console.log("getting the index", index);
+        // console.log("getting the index", index);
         if (index < 0) {
           upCommingConferenceIds.push({
             conferenceId: element[element.listId].conferenceId,
@@ -118,7 +118,7 @@ function EventList({ navigation }) {
         let index = pastConferenceIds.findIndex(
           (x) => x.conferenceId == element[element.listId].conferenceId
         );
-        console.log("getting the index", index);
+        // console.log("getting the index", index);
         if (index < 0) {
           pastConferenceIds.push({
             conferenceId: element[element.listId].conferenceId,
@@ -133,7 +133,7 @@ function EventList({ navigation }) {
     pastConferenceIds.forEach((element, index) => {
       pastEvents.forEach((item) => {
         if (element.conferenceId == item.conferenceId) {
-          console.log("zzzzz!!!!!!!!!!!!!!!", item[item.listId].name);
+          // console.log("zzzzz!!!!!!!!!!!!!!!", item[item.listId].name);
           let obj = {
             listId: item.listId,
             name: item[item.listId].name,
@@ -146,7 +146,7 @@ function EventList({ navigation }) {
     upCommingConferenceIds.forEach((element, index) => {
       upCommingEvents.forEach((item) => {
         if (element.conferenceId == item.conferenceId) {
-          console.log("fasfsdafsdafi", element);
+          // console.log("fasfsdafsdafi", element);
           let obj = {
             listId: item.listId,
             name: item[item.listId].name,
@@ -157,58 +157,15 @@ function EventList({ navigation }) {
       });
     });
 
-    // data.push({pastEventsData: pastConferenceIds});
-    // data.push({upCommingEventsData: upCommingConferenceIds});
-    console.log("zzzzzzzzzzzzzzzzzzzzzzz", pastConferenceIds);
     setData({
       pastEventsData: pastConferenceIds,
       upCommingEventsData: upCommingConferenceIds,
     });
-    //console.log('pastEvents', pastEvents);
-    // data?.map(
-    //   item => {
-    //     data = item.pastEventsData;
-    //     console.log('data = item.pastEventsData', data);
-    //   },
-    //   // console.log('itemPastData', item.pastEventsData)
-    // );
-    // let listIds;
-    //pastEvents.map(item => ({listIds = item.listId}));
-
-    //console.log('pastEvents', pastEvents[0].conferenceId);
-    // let pastEventList = [];
-    // pastEvents.forEach(element => {
-    //   console.log('conferenceId', element);
-    // });
-    // const groupedCheckInLists = hydratedCheckInLists.reduce(
-    //   (acc, checkInList) => {
-    //     console.log('checkInList', checkInList);
-    //     console.log('acc', acc);
-    //     console.log('checkInListname', checkInList[checkInList.listId].name);
-    //     if (!acc[checkInList[checkInList.listId].name]) {
-    //       acc[checkInList[checkInList.listId].name] = [];
-    //     }
-    //     // getTicketsForCheckInList(checkInList);
-    //     acc[checkInList[checkInList.listId].name].push(checkInList);
-    //     return acc;
-    //   },
-    //   {},
-    // );
-    // console.log(
-    //   'groupedCheckInLists',
-    //   groupedCheckInLists['EMEA 2022'][0][listId],
-    // );
-    //   let lsit = groupedCheckInLists['EMEA 2022'][0][listId];
-    //   getTicketsForCheckInList(lsit);
-    //   return groupedCheckInLists;
-    // };
   };
 
   const onPress = (params) => {
-    console.log("claiing", allData);
     let index = allData.findIndex((x) => x.listId == params);
     if (index >= 0) {
-      console.log("allData", allData[index]);
       navigation.navigate("CheckInListScreen", {
         allData: allData[index],
         listId: params,
@@ -220,7 +177,6 @@ function EventList({ navigation }) {
       <ConnectionHeader
         onPress={() => toggle()}
         onPressD={() => {
-          //navigation.navigate('QRScanner');
           auth().signOut();
         }}
       />
@@ -256,151 +212,6 @@ function EventList({ navigation }) {
             </View>
           ))
         : null}
-      {/* {data && loading == false ? (
-        <View className="flex-1">
-          {visible ? (
-            <View className="h-[40] w-[300] bg-slate-300 mt-3 rounded-lg justify-center self-center">
-              <TextInput
-                placeholder="Search here"
-                // className="h-9 w-fill text-lg p-2, mb-1"
-                style={styles.input}
-                onChangeText={val => {
-                  filterData(val);
-                }}
-              />
-            </View>
-          ) : null}
-          {/* <FlatList
-            data={filteredScans}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({item}) => (
-              <List
-                key={item.scanId}
-                name={item.displayName}
-                time={moment(item.created).format('hh:mmA')}
-                intro={item.jobTitle}
-                company={item.company}
-                onPress={() =>
-                  navigation.navigate('ScanItem', {
-                    data: item,
-                  })
-                }
-              />
-            )}
-          /> 
-
-          <List
-            categorey={'Upcomming'}
-            heading={'EMEA 2022'}
-            onPress={() =>
-              // navigation.navigate('ScanItem', {
-              //   data: item,
-              // })
-              null
-            }
-          />
-          <List
-            //categorey={'Upcomming'}
-            heading={'EMEA 2022'}
-            onPress={() =>
-              // navigation.navigate('ScanItem', {
-              //   data: item,
-              // })
-              null
-            }
-          />
-          <List
-            categorey={'Past Events'}
-            heading={'EMEA 2022'}
-            onPress={() =>
-              // navigation.navigate('ScanItem', {
-              //   data: item,
-              // })
-              null
-            }
-          />
-        </View>
-      ) : null}
-      {data == null && loading == false ? (
-        <NoScan
-          onPress={() =>
-            navigation.navigate('QRScanner', {
-              form: 'CustomerHistory',
-            })
-          }
-        />
-      ) : null}
-      {data ? (
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate('QRScanner', {
-              form: 'CustomerHistory',
-            })
-          }
-          className="flex-row h-[56] bg-secondary b-0 items-center justify-center">
-          <View style={styles.icon}>
-            <Image
-              source={require('../assets/images/qr.png')}
-              style={{height: 30, width: 30}}
-            />
-          </View>
-          <Text style={styles.text} className="text-white text-xl font-bold ">
-            Scan QR
-          </Text>
-        </TouchableOpacity>
-      ) : null} */}
-
-      <View></View>
-      {/* {data.map(item => (
-        <View>
-          <Text className="text-xl  font-bold text-secondary">Past Events</Text>
-          <Text style={styles.title}>{item}</Text>
-        </View>
-      ))}
-      <FlatList
-        data={data}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({item}) => (
-          <View>
-            <Text className="text-xl  font-bold text-secondary">
-              Past Events
-            </Text>
-            <Text style={styles.title}>{item.conferenceId}</Text>
-          </View>
-        )}
-      /> */}
-      {/* <View>
-        <List
-          categorey={'Upcomming'}
-          heading={'EMEA 2022'}
-          onPress={() =>
-            // navigation.navigate('ScanItem', {
-            //   data: item,
-            // })
-            null
-          }
-        />
-        <List
-          //categorey={'Upcomming'}
-          heading={'EMEA 2022'}
-          onPress={() =>
-            // navigation.navigate('ScanItem', {
-            //   data: item,
-            // })
-            null
-          }
-        />
-        <List
-          categorey={'Past Events'}
-          heading={'EMEA 2022'}
-          onPress={() =>
-            // navigation.navigate('ScanItem', {
-            //   data: item,
-            // })
-            null
-          }
-        />
-      </View> */}
     </View>
   );
 }

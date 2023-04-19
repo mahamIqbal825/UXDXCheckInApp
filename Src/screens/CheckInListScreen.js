@@ -22,11 +22,12 @@ import ErrorLoading from "../components/ErrorLoading";
 var Sound = require("react-native-sound");
 function MainScreen(props) {
   const [selected, setSelected] = useState("all");
-  const [ticket, setTicket] = useState([]);
-  const [checkInTicket, setCheckInTicket] = useState([]);
-  const [notCheckInTicket, setNotCheckInTicket] = useState([]);
+  // const [ticket, setTicket] = useState([]);
+  // const [checkInTicket, setCheckInTicket] = useState([]);
+  // const [notCheckInTicket, setNotCheckInTicket] = useState([]);
   const [loading, setLoading] = useState(false);
   const [checkInListTickets, setCheckInListTickets] = useState([]);
+  const [checkedInListTickets, setCheckedInListTickets] = useState([]);
   const [isScanned, setIsScanned] = useState(false);
   const [openQRScanner, setOpenQRScanner] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -36,70 +37,84 @@ function MainScreen(props) {
   const [filteredScans, setFilteredScans] = useState([]);
   const [filteredCheckScans, setFilteredCheckScans] = useState([]);
   const [filteredNonCheckScans, setFilteredNonCheckScans] = useState([]);
+  const [filterValue, setFilterValue] = useState("");
   const [visible, setVisible] = useState(false);
-  let results = [];
-  let docData = [];
+  // let results = [];
+  // let docData = [];
   useEffect(() => {
     Sound.setCategory("Playback");
     getTicketsForCheckInList(props.route.params?.allData);
   }, [props]);
-  const filterData = (val) => {
-    if (!val || val == "") {
-      setFilteredScans(ticket);
-      setFilteredCheckScans(checkInTicket);
-      setFilteredNonCheckScans(notCheckInTicket);
+
+  useEffect(() => {
+    checkedInListTickets.forEach((checkInRecord) => {
+      checkInListTickets.forEach((ticket) => {
+        if (checkInRecord.ticketRef == ticket.ticketRef) {
+          ticket.isCheckedIn = checkInRecord.isCheckedIn;
+        }
+      });
+    });
+    setCheckInListTickets(checkInListTickets)
+  }, [checkedInListTickets])
+
+  useEffect(() => {
+    filterData()
+  }, [checkInListTickets])
+
+  useEffect(() => {
+    filterData()
+  }, [filterValue])
+
+  const filterData = () => {
+    if (!filterValue || filterValue == "") {
+      setFilteredScans(checkInListTickets);
+      setFilteredCheckScans(checkInListTickets.filter((ticket) => ticket.isCheckedIn));
+      setFilteredNonCheckScans(checkInListTickets.filter((ticket) => !ticket.isCheckedIn));
     }
 
     setFilteredScans(
-      ticket?.filter((filter) => {
+      checkInListTickets?.filter((ticket) => {
         return (
-          filter.company?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.email?.toLowerCase().includes(val.toLowerCase()) ||
-          filter.firstName?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.jobTitle?.toLowerCase().includes(val.toLowerCase()) ||
-          filter.lastName?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.qrcode?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.ticketId?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.ticketRef?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.ticketType?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.userId?.toLowerCase()?.includes(val.toLowerCase())
+          ticket.company?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
+          ticket.email?.toLowerCase().includes(filterValue.toLowerCase()) ||
+          ticket.firstName?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
+          ticket.lastName?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
+          ticket.ticketId?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
+          ticket.ticketRef?.toLowerCase()?.includes(filterValue.toLowerCase())
         );
       })
     );
     setFilteredCheckScans(
-      checkInTicket?.filter((filter) => {
+      checkInListTickets?.filter((ticket) => {
         return (
-          filter.company?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.email?.toLowerCase().includes(val.toLowerCase()) ||
-          filter.firstName?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.jobTitle?.toLowerCase().includes(val.toLowerCase()) ||
-          filter.lastName?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.qrcode?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.ticketId?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.ticketRef?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.ticketType?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.userId?.toLowerCase()?.includes(val.toLowerCase())
+          ticket.isCheckedIn && (
+          ticket.company?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
+          ticket.email?.toLowerCase().includes(filterValue.toLowerCase()) ||
+          ticket.firstName?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
+          ticket.lastName?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
+          ticket.ticketId?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
+          ticket.ticketRef?.toLowerCase()?.includes(filterValue.toLowerCase()) 
+          )
         );
       })
     );
     setFilteredNonCheckScans(
-      notCheckInTicket?.filter((filter) => {
+      checkInListTickets?.filter((ticket) => {
         return (
-          filter.company?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.email?.toLowerCase().includes(val.toLowerCase()) ||
-          filter.firstName?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.jobTitle?.toLowerCase().includes(val.toLowerCase()) ||
-          filter.lastName?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.qrcode?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.ticketId?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.ticketRef?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.ticketType?.toLowerCase()?.includes(val.toLowerCase()) ||
-          filter.userId?.toLowerCase()?.includes(val.toLowerCase())
+          !ticket.isCheckedIn && (
+          ticket.company?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
+          ticket.email?.toLowerCase().includes(filterValue.toLowerCase()) ||
+          ticket.firstName?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
+          ticket.lastName?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
+          ticket.ticketId?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
+          ticket.ticketRef?.toLowerCase()?.includes(filterValue.toLowerCase())
+          )
         );
       })
     );
   };
   const getTicketsForCheckInList = async (list) => {
+    const results = []
     setLoading(true);
     const ticketsQuery = await firestore()
       .collection("tickets")
@@ -169,6 +184,7 @@ function MainScreen(props) {
       };
       results.push(ticketInfo);
     }
+    setCheckInListTickets(results)
 
     observeCheckInList(
       props.route.params.allData.conferenceId,
@@ -176,8 +192,8 @@ function MainScreen(props) {
     );
     return results;
   };
-  const observeCheckInList = async (productId, listId) => {
-    const query = await firestore()
+  const observeCheckInList = (productId, listId) => {
+    firestore()
       .collection(
         "checkInLists/conferences/" +
           productId +
@@ -185,74 +201,26 @@ function MainScreen(props) {
           listId +
           "/ticketCheckIns"
       )
-      .get()
-      .then((querySnapshot) => {
-        const tickets = querySnapshot.docs.reduce((acc, doc) => {
+      .onSnapshot((querySnapshot) => {
+        const tickets = querySnapshot.docs.map((doc) => {
+          // console.log('called', doc.data())
           // acc[doc.id] = {...doc.data()};
-          docData.push(doc.data());
+          // docData.push(doc.data());
 
           return doc.data();
-        }, {});
-        setCheckInListTickets(docData);
+        });
+        setCheckedInListTickets(tickets);
+        setLoading(false);
       });
     // console.log('results adsadafasdfs', results[0]);
-    results.forEach((element) => {
-      docData.forEach((item) => {
-        if (element.ticketRef == item.ticketRef) {
-          element.isCheckedIn = item.isCheckedIn;
-        }
-      });
-    });
-    let checkedIn = [];
-    let notCheckIn = [];
-    results.map((item) => {
-      if (item.isCheckedIn) {
-        const data = {
-          company: item.company,
-          email: item.email,
-          firstName: item.firstName,
-          isCheckedIn: item.isCheckedIn,
-          jobTitle: item.jobTitle,
-          lastName: item.lastName,
-          qrcode: item.qrcode,
-          ticketId: item.ticketId,
-          ticketRef: item.ticketRef,
-          ticketType: item.ticketType,
-          userId: item.userId,
-        };
-        checkedIn.push(data);
-
-        setCheckInTicket(checkedIn);
-      } else if (!item.isCheckedIn) {
-        const data = {
-          company: item.company,
-          email: item.email,
-          firstName: item.firstName,
-          isCheckedIn: item.isCheckedIn,
-          jobTitle: item.jobTitle,
-          lastName: item.lastName,
-          qrcode: item.qrcode,
-          ticketId: item.ticketId,
-          ticketRef: item.ticketRef,
-          ticketType: item.ticketType,
-          userId: item.userId,
-        };
-        notCheckIn.push(data);
-        setNotCheckInTicket(notCheckIn);
-      }
-    });
-    setFilteredCheckScans(checkedIn);
-    setFilteredNonCheckScans(notCheckIn);
-    setTicket(results);
-    setFilteredScans(results);
-    setLoading(false);
   };
   const handleCheckInTicket = async (ticketRef, userId, checkIn) => {
+    // console.log('called', checkIn)
     setLoading(true);
     if (!props.route.params.allData.listId) {
       return;
     }
-    const ticketCheckInRecord = checkInListTickets[ticketRef];
+    const ticketCheckInRecord = checkedInListTickets[ticketRef];
     const history = ticketCheckInRecord?.history || [];
 
     if (ticketCheckInRecord) {
@@ -263,7 +231,7 @@ function MainScreen(props) {
       });
     }
     let updatedTicket = {};
-    ticket.map((item) => {
+    checkInListTickets.map((item) => {
       if (item.ticketRef == ticketRef) {
         updatedTicket = {
           history,
@@ -291,7 +259,7 @@ function MainScreen(props) {
       )
       .doc(ticketRef)
       .set(updatedTicket)
-      .then(() => getTicketsForCheckInList(props.route.params?.allData));
+      // .then(() => getTicketsForCheckInList(props.route.params?.allData));
   };
   const playSound = (messageType, data) => {
     var whoosh = new Sound(`${messageType}.mp3`, Sound.MAIN_BUNDLE, (error) => {
@@ -336,7 +304,7 @@ function MainScreen(props) {
       alert("This Ticket Is not valid");
     }
     if (ticketRef) {
-      ticket.map((item) => {
+      checkInListTickets.map((item) => {
         if (item.ticketRef === ticketRef) {
           userTicket = item;
         }
@@ -344,7 +312,7 @@ function MainScreen(props) {
       if (!userTicket) {
         alert("This ticket is not on this list!");
       } else {
-        checkInListTickets.map((item) => {
+        checkedInListTickets.map((item) => {
           if (item.ticketRef == userTicket.ticketRef) {
             if (item.isCheckedIn) {
               alert("Ticket is already scanned!");
@@ -412,7 +380,7 @@ function MainScreen(props) {
                 // className="h-9 w-fill text-lg p-2, mb-1"
                 style={styles.input}
                 onChangeText={(val) => {
-                  filterData(val);
+                  setFilterValue(val);
                 }}
               />
             </View>
@@ -442,7 +410,7 @@ function MainScreen(props) {
                   id={item.ticketRef}
                   isCheckIn={item.isCheckedIn}
                   checkInPress={() =>
-                    handleCheckInTicket(item.ticketRef, item.userId, true)
+                    handleCheckInTicket(item.ticketRef, item.userId, !item.isCheckedIn)
                   }
                 />
               )}
@@ -461,7 +429,7 @@ function MainScreen(props) {
                   id={item.ticketRef}
                   isCheckIn={item.isCheckedIn}
                   checkInPress={() =>
-                    handleCheckInTicket(item.ticketRef, item.userId, true)
+                    handleCheckInTicket(item.ticketRef, item.userId, !item.isCheckedIn)
                   }
                 />
               )}
@@ -480,7 +448,7 @@ function MainScreen(props) {
                   id={item.ticketRef}
                   isCheckIn={item.isCheckedIn}
                   checkInPress={() =>
-                    handleCheckInTicket(item.ticketRef, item.userId, true)
+                    handleCheckInTicket(item.ticketRef, item.userId, !item.isCheckedIn)
                   }
                 />
               )}
