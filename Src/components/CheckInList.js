@@ -22,6 +22,7 @@ function CheckInList({
     <TouchableOpacity style={styles.cont} onPress={onPress}>
       <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
         <Text className="text-xl font-medium text-secondary">{name}</Text>
+        <TouchableOpacity onPress={checkInPress}>
         {isCheckIn ? (
           <Image
             source={require('../assets/images/checked.png')}
@@ -32,13 +33,12 @@ function CheckInList({
             }}
           />
         ) : (
-          <TouchableOpacity onPress={checkInPress}>
             <Image
               source={require('../assets/images/Button.png')}
               style={{height: 34, width: 120}}
             />
-          </TouchableOpacity>
-        )}
+            )}
+            </TouchableOpacity>
       </View>
       <Text
         className="text-sm mt-2 font-medium"

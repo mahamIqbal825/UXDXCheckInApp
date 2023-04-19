@@ -66,6 +66,7 @@ function MainScreen(props) {
   }, [filterValue])
 
   const filterData = () => {
+    const lowerCaseFilter = filterValue.toLowerCase();
     if (!filterValue || filterValue == "") {
       setFilteredScans(checkInListTickets);
       setFilteredCheckScans(checkInListTickets.filter((ticket) => ticket.isCheckedIn));
@@ -75,12 +76,12 @@ function MainScreen(props) {
     setFilteredScans(
       checkInListTickets?.filter((ticket) => {
         return (
-          ticket.company?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
-          ticket.email?.toLowerCase().includes(filterValue.toLowerCase()) ||
-          ticket.firstName?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
-          ticket.lastName?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
-          ticket.ticketId?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
-          ticket.ticketRef?.toLowerCase()?.includes(filterValue.toLowerCase())
+          ticket.company?.toLowerCase()?.includes(lowerCaseFilter) ||
+          ticket.email?.toLowerCase().includes(lowerCaseFilter) ||
+          ticket.firstName?.toLowerCase()?.includes(lowerCaseFilter) ||
+          ticket.lastName?.toLowerCase()?.includes(lowerCaseFilter) ||
+          ticket.ticketId?.toLowerCase()?.includes(lowerCaseFilter) ||
+          ticket.ticketRef?.toLowerCase()?.includes(lowerCaseFilter)
         );
       })
     );
@@ -88,12 +89,12 @@ function MainScreen(props) {
       checkInListTickets?.filter((ticket) => {
         return (
           ticket.isCheckedIn && (
-          ticket.company?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
-          ticket.email?.toLowerCase().includes(filterValue.toLowerCase()) ||
-          ticket.firstName?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
-          ticket.lastName?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
-          ticket.ticketId?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
-          ticket.ticketRef?.toLowerCase()?.includes(filterValue.toLowerCase()) 
+          ticket.company?.toLowerCase()?.includes(lowerCaseFilter) ||
+          ticket.email?.toLowerCase().includes(lowerCaseFilter) ||
+          ticket.firstName?.toLowerCase()?.includes(lowerCaseFilter) ||
+          ticket.lastName?.toLowerCase()?.includes(lowerCaseFilter) ||
+          ticket.ticketId?.toLowerCase()?.includes(lowerCaseFilter) ||
+          ticket.ticketRef?.toLowerCase()?.includes(lowerCaseFilter) 
           )
         );
       })
@@ -102,12 +103,12 @@ function MainScreen(props) {
       checkInListTickets?.filter((ticket) => {
         return (
           !ticket.isCheckedIn && (
-          ticket.company?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
-          ticket.email?.toLowerCase().includes(filterValue.toLowerCase()) ||
-          ticket.firstName?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
-          ticket.lastName?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
-          ticket.ticketId?.toLowerCase()?.includes(filterValue.toLowerCase()) ||
-          ticket.ticketRef?.toLowerCase()?.includes(filterValue.toLowerCase())
+          ticket.company?.toLowerCase()?.includes(lowerCaseFilter) ||
+          ticket.email?.toLowerCase().includes(lowerCaseFilter) ||
+          ticket.firstName?.toLowerCase()?.includes(lowerCaseFilter) ||
+          ticket.lastName?.toLowerCase()?.includes(lowerCaseFilter) ||
+          ticket.ticketId?.toLowerCase()?.includes(lowerCaseFilter) ||
+          ticket.ticketRef?.toLowerCase()?.includes(lowerCaseFilter)
           )
         );
       })
@@ -215,7 +216,6 @@ function MainScreen(props) {
     // console.log('results adsadafasdfs', results[0]);
   };
   const handleCheckInTicket = async (ticketRef, userId, checkIn) => {
-    // console.log('called', checkIn)
     setLoading(true);
     if (!props.route.params.allData.listId) {
       return;
@@ -233,6 +233,7 @@ function MainScreen(props) {
     let updatedTicket = {};
     checkInListTickets.map((item) => {
       if (item.ticketRef == ticketRef) {
+        item.isCheckedIn = checkIn
         updatedTicket = {
           history,
           ticketRef: ticketRef,
@@ -248,6 +249,7 @@ function MainScreen(props) {
         };
       }
     });
+    setCheckInListTickets(checkInListTickets)
 
     firestore()
       .collection(
@@ -409,8 +411,9 @@ function MainScreen(props) {
                   attendee={"Attendee: " + item.ticketType}
                   id={item.ticketRef}
                   isCheckIn={item.isCheckedIn}
-                  checkInPress={() =>
+                  checkInPress={() => {
                     handleCheckInTicket(item.ticketRef, item.userId, !item.isCheckedIn)
+                  }
                   }
                 />
               )}
