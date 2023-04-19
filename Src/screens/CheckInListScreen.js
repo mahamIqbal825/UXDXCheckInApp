@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   Text,
@@ -8,20 +8,20 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-} from 'react-native';
-import firestore from '@react-native-firebase/firestore';
-import database from '@react-native-firebase/database';
-import CheckInHeader from '../components/CheckInHeader';
-import Theme from '../utils/Theme';
-import CheckInSelection from '../components/CheckInSelection';
-import CheckInList from '../components/CheckInList';
-import Loading from '../components/Loading';
-import {CameraScreen} from 'react-native-camera-kit';
-import ErrorLoading from '../components/ErrorLoading';
+} from "react-native";
+import firestore from "@react-native-firebase/firestore";
+import database from "@react-native-firebase/database";
+import CheckInHeader from "../components/CheckInHeader";
+import Theme from "../utils/Theme";
+import CheckInSelection from "../components/CheckInSelection";
+import CheckInList from "../components/CheckInList";
+import Loading from "../components/Loading";
+import { CameraScreen } from "react-native-camera-kit";
+import ErrorLoading from "../components/ErrorLoading";
 
-var Sound = require('react-native-sound');
+var Sound = require("react-native-sound");
 function MainScreen(props) {
-  const [selected, setSelected] = useState('all');
+  const [selected, setSelected] = useState("all");
   const [ticket, setTicket] = useState([]);
   const [checkInTicket, setCheckInTicket] = useState([]);
   const [notCheckInTicket, setNotCheckInTicket] = useState([]);
@@ -32,7 +32,7 @@ function MainScreen(props) {
   const [modalVisible, setModalVisible] = useState(false);
   const [success, setSuccess] = useState(false);
   const [failure, setFailure] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [filteredScans, setFilteredScans] = useState([]);
   const [filteredCheckScans, setFilteredCheckScans] = useState([]);
   const [filteredNonCheckScans, setFilteredNonCheckScans] = useState([]);
@@ -40,18 +40,18 @@ function MainScreen(props) {
   let results = [];
   let docData = [];
   useEffect(() => {
-    Sound.setCategory('Playback');
+    Sound.setCategory("Playback");
     getTicketsForCheckInList(props.route.params?.allData);
   }, [props]);
-  const filterData = val => {
-    if (!val || val == '') {
+  const filterData = (val) => {
+    if (!val || val == "") {
       setFilteredScans(ticket);
       setFilteredCheckScans(checkInTicket);
       setFilteredNonCheckScans(notCheckInTicket);
     }
 
     setFilteredScans(
-      ticket?.filter(filter => {
+      ticket?.filter((filter) => {
         return (
           filter.company?.toLowerCase()?.includes(val.toLowerCase()) ||
           filter.email?.toLowerCase().includes(val.toLowerCase()) ||
@@ -64,10 +64,10 @@ function MainScreen(props) {
           filter.ticketType?.toLowerCase()?.includes(val.toLowerCase()) ||
           filter.userId?.toLowerCase()?.includes(val.toLowerCase())
         );
-      }),
+      })
     );
     setFilteredCheckScans(
-      checkInTicket?.filter(filter => {
+      checkInTicket?.filter((filter) => {
         return (
           filter.company?.toLowerCase()?.includes(val.toLowerCase()) ||
           filter.email?.toLowerCase().includes(val.toLowerCase()) ||
@@ -80,10 +80,10 @@ function MainScreen(props) {
           filter.ticketType?.toLowerCase()?.includes(val.toLowerCase()) ||
           filter.userId?.toLowerCase()?.includes(val.toLowerCase())
         );
-      }),
+      })
     );
     setFilteredNonCheckScans(
-      notCheckInTicket?.filter(filter => {
+      notCheckInTicket?.filter((filter) => {
         return (
           filter.company?.toLowerCase()?.includes(val.toLowerCase()) ||
           filter.email?.toLowerCase().includes(val.toLowerCase()) ||
@@ -96,19 +96,19 @@ function MainScreen(props) {
           filter.ticketType?.toLowerCase()?.includes(val.toLowerCase()) ||
           filter.userId?.toLowerCase()?.includes(val.toLowerCase())
         );
-      }),
+      })
     );
   };
-  const getTicketsForCheckInList = async list => {
+  const getTicketsForCheckInList = async (list) => {
     setLoading(true);
     const ticketsQuery = await firestore()
-      .collection('tickets')
-      .where('ticketType', 'in', list[list.listId].includeConditions)
-      .where('productId', '==', list[list.listId].conferenceId)
+      .collection("tickets")
+      .where("ticketType", "in", list[list.listId].includeConditions)
+      .where("productId", "==", list[list.listId].conferenceId)
       .get();
     const tickets = [];
 
-    ticketsQuery.forEach(doc => {
+    ticketsQuery.forEach((doc) => {
       tickets.push(doc.data());
     });
     const userIds = [];
@@ -119,22 +119,22 @@ function MainScreen(props) {
     }
 
     const users = await Promise.all(
-      userIds.map(async uid => {
+      userIds.map(async (uid) => {
         let user = null;
         const userProfile = await database()
           .ref(`/users/${uid}`)
-          .once('value')
-          .then(snapshot => {
+          .once("value")
+          .then((snapshot) => {
             user = snapshot.val();
           });
 
         return user;
-      }),
+      })
     );
     for (const ticket of tickets) {
       let user;
       if (ticket.uid) {
-        user = users.map(user => {
+        user = users.map((user) => {
           user.uid === ticket.uid;
         })[0];
       }
@@ -147,22 +147,22 @@ function MainScreen(props) {
           ? user?.firstName
           : ticket?.firstName
           ? ticket?.firstName
-          : 'Not Available',
+          : "Not Available",
         lastName: user?.lastName
           ? user?.lastName
           : ticket?.lastName
           ? ticket?.lastName
-          : 'Not Available',
+          : "Not Available",
         jobTitle: user?.jobTitle
           ? user?.jobTitle
           : ticket?.jobTitle
           ? ticket?.jobTitle
-          : 'Not Available',
+          : "Not Available",
         company: user?.company
           ? user?.company
           : ticket?.company
           ? ticket?.company
-          : 'Not Available',
+          : "Not Available",
 
         email: ticket.email,
         qrcode: ticket.qrcode,
@@ -172,21 +172,21 @@ function MainScreen(props) {
 
     observeCheckInList(
       props.route.params.allData.conferenceId,
-      props.route.params.allData.listId,
+      props.route.params.allData.listId
     );
     return results;
   };
   const observeCheckInList = async (productId, listId) => {
     const query = await firestore()
       .collection(
-        'checkInLists/conferences/' +
+        "checkInLists/conferences/" +
           productId +
-          '/' +
+          "/" +
           listId +
-          '/ticketCheckIns',
+          "/ticketCheckIns"
       )
       .get()
-      .then(querySnapshot => {
+      .then((querySnapshot) => {
         const tickets = querySnapshot.docs.reduce((acc, doc) => {
           // acc[doc.id] = {...doc.data()};
           docData.push(doc.data());
@@ -196,8 +196,8 @@ function MainScreen(props) {
         setCheckInListTickets(docData);
       });
     // console.log('results adsadafasdfs', results[0]);
-    results.forEach(element => {
-      docData.forEach(item => {
+    results.forEach((element) => {
+      docData.forEach((item) => {
         if (element.ticketRef == item.ticketRef) {
           element.isCheckedIn = item.isCheckedIn;
         }
@@ -205,7 +205,7 @@ function MainScreen(props) {
     });
     let checkedIn = [];
     let notCheckIn = [];
-    results.map(item => {
+    results.map((item) => {
       if (item.isCheckedIn) {
         const data = {
           company: item.company,
@@ -263,7 +263,7 @@ function MainScreen(props) {
       });
     }
     let updatedTicket = {};
-    ticket.map(item => {
+    ticket.map((item) => {
       if (item.ticketRef == ticketRef) {
         updatedTicket = {
           history,
@@ -272,10 +272,10 @@ function MainScreen(props) {
           isCheckedIn: checkIn,
           timestamp: Date.now(),
           first_name: item.firstName,
-          last_name: item.lastName || '',
-          job_title: item.jobTitle || '',
-          company_name: item.company || '',
-          status: 'not printed',
+          last_name: item.lastName || "",
+          job_title: item.jobTitle || "",
+          company_name: item.company || "",
+          status: "not printed",
           qrcode: item.qrcode,
         };
       }
@@ -283,71 +283,71 @@ function MainScreen(props) {
 
     firestore()
       .collection(
-        'checkInLists/conferences/' +
+        "checkInLists/conferences/" +
           props.route.params.allData.conferenceId +
-          '/' +
+          "/" +
           props.route.params.allData.listId +
-          '/ticketCheckIns',
+          "/ticketCheckIns"
       )
       .doc(ticketRef)
       .set(updatedTicket)
       .then(() => getTicketsForCheckInList(props.route.params?.allData));
   };
   const playSound = (messageType, data) => {
-    var whoosh = new Sound(`${messageType}.mp3`, Sound.MAIN_BUNDLE, error => {
+    var whoosh = new Sound(`${messageType}.mp3`, Sound.MAIN_BUNDLE, (error) => {
       if (error) {
-        console.log('sound is playe loading', error);
+        console.log("sound is playe loading", error);
         return;
       }
-      whoosh.play(success => {
+      whoosh.play((success) => {
         if (success) {
         } else {
-          console.log('error');
+          console.log("error");
         }
       });
     });
   };
-  const OnScan = event => {
+  const OnScan = (event) => {
     // console.log('event', event);
     if (!isScanned) {
       setIsScanned(true);
       try {
         const ticketRef = JSON.parse(
-          event.nativeEvent.codeStringValue,
+          event.nativeEvent.codeStringValue
         ).ticketRef;
         const userId = JSON.parse(event.nativeEvent.codeStringValue).userId;
 
         if (ticketRef) {
-          playSound('success');
+          playSound("success");
           setOpenQRScanner(false);
           setIsScanned(false);
           handleScannedData(ticketRef, userId);
         }
       } catch (error) {
-        playSound('negative');
+        playSound("negative");
         setFailure(true);
-        setError('Invalid QR Code.');
+        setError("Invalid QR Code.");
       }
     }
   };
   const handleScannedData = async (ticketRef, uid) => {
     let userTicket = null;
     if (!ticketRef || !uid) {
-      alert('This Ticket Is not valid');
+      alert("This Ticket Is not valid");
     }
     if (ticketRef) {
-      ticket.map(item => {
+      ticket.map((item) => {
         if (item.ticketRef === ticketRef) {
           userTicket = item;
         }
       });
       if (!userTicket) {
-        alert('This ticket is not on this list!');
+        alert("This ticket is not on this list!");
       } else {
-        checkInListTickets.map(item => {
+        checkInListTickets.map((item) => {
           if (item.ticketRef == userTicket.ticketRef) {
             if (item.isCheckedIn) {
-              alert('Ticket is already scanned!');
+              alert("Ticket is already scanned!");
             }
           }
         });
@@ -363,7 +363,7 @@ function MainScreen(props) {
   return (
     <SafeAreaView style={styles.container}>
       {openQRScanner ? (
-        <View style={{flex: 1}}>
+        <View style={{ flex: 1 }}>
           <CameraScreen
             // Barcode props
             onBottomButtonPressed={() => {
@@ -371,16 +371,16 @@ function MainScreen(props) {
               setOpenQRScanner(false);
             }}
             actions={{
-              leftButtonText: 'Close',
+              leftButtonText: "Close",
             }}
             flashMode="on"
             torchMode="on"
             hideControls={false}
-            torchOnImage={require('../assets/images/flash.png')}
-            torchOffImage={require('../assets/images/no-flash.png')}
+            torchOnImage={require("../assets/images/flash.png")}
+            torchOffImage={require("../assets/images/no-flash.png")}
             torchImageStyle={styles.torchImage}
             scanBarcode={true}
-            onReadCode={event => {
+            onReadCode={(event) => {
               OnScan(event);
             }}
             showFrame={true}
@@ -411,34 +411,34 @@ function MainScreen(props) {
                 placeholder="Search here"
                 // className="h-9 w-fill text-lg p-2, mb-1"
                 style={styles.input}
-                onChangeText={val => {
+                onChangeText={(val) => {
                   filterData(val);
                 }}
               />
             </View>
           ) : null}
           <CheckInSelection
-            allPress={() => setSelected('all')}
-            notCheckPress={() => setSelected('notCheck')}
-            checkPress={() => setSelected('checked')}
-            allBG={selected == 'all' ? Theme.borderColor : 'transparent'}
-            notBG={selected == 'notCheck' ? Theme.borderColor : 'transparent'}
-            checkBG={selected == 'checked' ? Theme.borderColor : 'transparent'}
-            colorAll={selected == 'all' ? 'white' : Theme.greyColor}
-            colorCheck={selected == 'checked' ? 'white' : Theme.greyColor}
-            colorNot={selected == 'notCheck' ? 'white' : Theme.greyColor}
+            allPress={() => setSelected("all")}
+            notCheckPress={() => setSelected("notCheck")}
+            checkPress={() => setSelected("checked")}
+            allBG={selected == "all" ? Theme.borderColor : "transparent"}
+            notBG={selected == "notCheck" ? Theme.borderColor : "transparent"}
+            checkBG={selected == "checked" ? Theme.borderColor : "transparent"}
+            colorAll={selected == "all" ? "white" : Theme.greyColor}
+            colorCheck={selected == "checked" ? "white" : Theme.greyColor}
+            colorNot={selected == "notCheck" ? "white" : Theme.greyColor}
           />
           <Loading isVisible={loading} loading={loading} />
-          {selected == 'all' ? (
+          {selected == "all" ? (
             <FlatList
               data={filteredScans}
               keyExtractor={(item, index) => index.toString()}
-              renderItem={({item}) => (
+              renderItem={({ item }) => (
                 <CheckInList
                   key={item.ticketRef}
                   name={item.firstName}
                   email={item.email}
-                  attendee={'Attendee: ' + item.ticketType}
+                  attendee={"Attendee: " + item.ticketType}
                   id={item.ticketRef}
                   isCheckIn={item.isCheckedIn}
                   checkInPress={() =>
@@ -448,16 +448,16 @@ function MainScreen(props) {
               )}
             />
           ) : null}
-          {selected == 'checked' ? (
+          {selected == "checked" ? (
             <FlatList
               data={filteredCheckScans}
               keyExtractor={(item, index) => index.toString()}
-              renderItem={({item}) => (
+              renderItem={({ item }) => (
                 <CheckInList
                   key={item.ticketRef}
                   name={item.firstName}
                   email={item.email}
-                  attendee={'Attendee: ' + item.ticketType}
+                  attendee={"Attendee: " + item.ticketType}
                   id={item.ticketRef}
                   isCheckIn={item.isCheckedIn}
                   checkInPress={() =>
@@ -467,16 +467,16 @@ function MainScreen(props) {
               )}
             />
           ) : null}
-          {selected == 'notCheck' ? (
+          {selected == "notCheck" ? (
             <FlatList
               data={filteredNonCheckScans}
               keyExtractor={(item, index) => index.toString()}
-              renderItem={({item}) => (
+              renderItem={({ item }) => (
                 <CheckInList
                   key={item.ticketRef}
                   name={item.firstName}
                   email={item.email}
-                  attendee={'Attendee: ' + item.ticketType}
+                  attendee={"Attendee: " + item.ticketType}
                   id={item.ticketRef}
                   isCheckIn={item.isCheckedIn}
                   checkInPress={() =>
@@ -488,7 +488,8 @@ function MainScreen(props) {
           ) : null}
           <TouchableOpacity
             style={styles.bottomButton}
-            onPress={() => setOpenQRScanner(true)}>
+            onPress={() => setOpenQRScanner(true)}
+          >
             <Text style={styles.qrButton}>Scan QR</Text>
           </TouchableOpacity>
         </>
@@ -507,20 +508,20 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.primaryColor,
     width: Theme.dw,
     bottom: 0,
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
   },
   qrButton: {
-    color: 'white',
+    color: "white",
     fontSize: 22,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: "700",
+    textAlign: "center",
   },
   input: {
     fontSize: 14,
     height: 40,
-    width: '100%',
+    width: "100%",
     padding: 5,
     marginLeft: Theme.hp(1),
   },
