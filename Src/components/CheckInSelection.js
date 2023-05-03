@@ -70,7 +70,7 @@ export default CheckInSelection;
 const styles = StyleSheet.create({
   container: {
     height: 45,
-    width: Platform.OS == "ios" ? "88%" : "93%",
+    width: Platform.OS == "ios" ? "87%" : "93%",
     borderWidth: 1,
     borderColor: Theme.borderColor,
     alignSelf: "center",

@@ -2,47 +2,41 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  Modal,
   Platform,
   StyleSheet,
-  Dimensions,
-  FlatList,
-  PermissionsAndroid,
   TouchableOpacity,
-  TextInput,
   Image,
-  SectionList,
-  VirtualizedList,
+  TextInput,
 } from "react-native";
 import ConnectionHeader from "../components/ConnectionHeader";
-import Heading from "../components/Heading";
-import List from "../components/List";
 import NoScan from "../components/NoScan";
 import firestore from "@react-native-firebase/firestore";
-import database from "@react-native-firebase/database";
 import auth from "@react-native-firebase/auth";
-import moment from "moment";
-import { useFocusEffect } from "@react-navigation/native";
 import Loading from "../components/Loading";
 import Theme from "../utils/Theme";
-import { date } from "yup";
+import Modal from "react-native-modal";
+import LogoutModal from "../components/LogoutModal";
 
 function EventList({ navigation }) {
   const [data, setData] = useState({});
   const [visible, setVisible] = useState(false);
   const [allData, setAllData] = useState({});
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState(false);
+  const [filterValue, setFilterValue] = useState("");
+  const [filteredData, setFilteredData] = useState({});
+  let pstpost = [];
   const toggle = () => {
-    setVisible(!visible);
+    setSearch(!search);
   };
   const currentUser = auth().currentUser;
 
   useEffect(() => {
-    // console.log("id", currentUser.uid);
     getCheckInLists(currentUser.uid);
   }, []);
-  let listId = "";
-
+  useEffect(() => {
+    filterData();
+  }, [filterValue]);
   const getCheckInLists = async (uid) => {
     const checkInListsQuery = await firestore()
       .collection("checkInLists/admins/" + uid)
@@ -161,8 +155,57 @@ function EventList({ navigation }) {
       pastEventsData: pastConferenceIds,
       upCommingEventsData: upCommingConferenceIds,
     });
-  };
+    setFilteredData({
+      pastEventsData: pastConferenceIds,
+      upCommingEventsData: upCommingConferenceIds,
+    });
 
+    // set all data
+  };
+  const filterData = () => {
+    if (filterValue.length > 1) {
+      var tempPastEvents = filter(data.pastEventsData);
+      var tempComingEvents = filter(data.upCommingEventsData);
+      // put the code for futer
+      console.log("tempPastEvents", tempPastEvents);
+      setFilteredData({
+        pastEventsData: tempPastEvents,
+        upCommingEventsData: tempComingEvents,
+      });
+    } else {
+      clearFilter();
+    }
+  };
+  const filter = (arry) => {
+    const lowerCaseFilter = filterValue.toLowerCase();
+    let tempPastEvents = [];
+    arry.forEach((element) => {
+      let tempPastEventsdata = [];
+      console.log("element", element);
+      element.data.forEach((item) => {
+        console.log("item", item);
+        var val = item.split("%%")[1].toString().toLowerCase();
+        if (val.includes(lowerCaseFilter)) {
+          console.log("result", item);
+          tempPastEventsdata.push(item);
+        }
+      });
+      if (tempPastEventsdata.length > 0) {
+        let obj = Object.assign({}, element);
+        obj.data = tempPastEventsdata;
+        tempPastEvents.push(obj);
+        console.log("tempPastEventsdata", tempPastEventsdata);
+      }
+    });
+    return tempPastEvents;
+  };
+  const clearFilter = () => {
+    console.log("data orginal", data.pastEventsData);
+    setFilteredData({
+      pastEventsData: data.pastEventsData,
+      upCommingEventsData: data.upCommingEventsData,
+    });
+  };
   const onPress = (params) => {
     let index = allData.findIndex((x) => x.listId == params);
     if (index >= 0) {
@@ -176,13 +219,71 @@ function EventList({ navigation }) {
     <View className="flex-1">
       <ConnectionHeader
         onPress={() => toggle()}
-        onPressD={() => {
-          auth().signOut();
-        }}
+        onPressD={() => setVisible(true)}
       />
+      {search ? (
+        <View className="h-[40] w-[300] bg-slate-300 mt-3 rounded-lg items-center self-center flex-row">
+          <TextInput
+            placeholder="Search here"
+            value={filterValue}
+            style={styles.input}
+            onChangeText={(val) => {
+              setFilterValue(val);
+            }}
+          />
+          <TouchableOpacity
+            onPress={() => {
+              setFilterValue("");
+              2;
+              clearFilter();
+            }}
+          >
+            <Image
+              source={require("../assets/images/cross.png")}
+              style={{ height: 10, width: 10, tintColor: "black" }}
+            />
+          </TouchableOpacity>
+        </View>
+      ) : null}
       <Loading isVisible={loading} loading={loading} />
-      {data?.pastEventsData?.length > 0
-        ? data.pastEventsData.map((item) => (
+      {filteredData?.pastEventsData?.length > 0
+        ? filteredData.pastEventsData.map((item) => (
+            <View style={styles.cont} key={item.conferenceId.toString()}>
+              <View style={styles.innerCont}>
+                <Text className="text-lg mt-4 mb-2 font-medium text-secondary">
+                  {item.conferenceId}
+                </Text>
+              </View>
+
+              {item.data.map((item, index) => (
+                <TouchableOpacity
+                  key={item.split("%%")[0].toString()}
+                  onPress={() => onPress(item.split("%%")[0])}
+                  style={styles.click}
+                  className="flex-row items-center mt-3 justify-between"
+                >
+                  <Text
+                    //  key={index}
+                    className="text-base ml-1 font-base text-secondary"
+                  >
+                    {item.split("%%")[1]}
+                  </Text>
+                  <Image
+                    className="h-[18] w-[11] "
+                    source={require("../assets/images/next.png")}
+                  />
+                </TouchableOpacity>
+              ))}
+              <LogoutModal
+                isVisible={visible}
+                pressOk={() => auth().signOut()}
+                pressNo={() => setVisible(false)}
+              />
+            </View>
+          ))
+        : null}
+      {filteredData?.upCommingEventsData?.length > 0
+        ? filteredData.upCommingEventsData.map((item) => (
             <View style={styles.cont} key={item.conferenceId.toString()}>
               <View style={styles.innerCont}>
                 <Text className="text-lg mt-4 mb-2 font-medium text-secondary">
@@ -215,6 +316,7 @@ function EventList({ navigation }) {
     </View>
   );
 }
+
 <NoScan
   onPress={() =>
     navigation.navigate("QRScanner", {
@@ -279,5 +381,12 @@ const styles = StyleSheet.create({
   click: {
     width: "97%",
     marginBottom: 15,
+  },
+  input: {
+    fontSize: 14,
+    height: 40,
+    width: "90%",
+    padding: 5,
+    marginLeft: Theme.hp(1),
   },
 });
