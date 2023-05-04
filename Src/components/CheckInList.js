@@ -19,26 +19,30 @@ function CheckInList({
   checkInPress,
 }) {
   return (
-    <TouchableOpacity style={styles.cont} onPress={onPress}>
+    <View style={styles.cont}>
       <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
         <Text className="text-xl font-medium text-secondary">{name}</Text>
-        <TouchableOpacity onPress={checkInPress}>
         {isCheckIn ? (
-          <Image
-            source={require('../assets/images/checked.png')}
-            style={{
-              tintColor: '#53B10A',
-              height: 18.4,
-              width: 18.4,
-            }}
-          />
-        ) : (
+          <TouchableOpacity onPress={checkInPress}>
+            <Image
+              source={require('../assets/images/checked.png')}
+              style={{
+                tintColor: '#53B10A',
+                height: 18.4,
+                width: 18.4,
+              }}
+            />
+          </TouchableOpacity>
+        ) : name === 'Not Available Yet' ? (
+          <Text>More details required</Text>
+        ):(
+          <TouchableOpacity onPress={checkInPress}>
             <Image
               source={require('../assets/images/Button.png')}
               style={{height: 34, width: 120}}
             />
-            )}
             </TouchableOpacity>
+            )}
       </View>
       <Text
         className="text-sm mt-2 font-medium"
@@ -53,7 +57,7 @@ function CheckInList({
         {attendee}
       </Text>
       <Text className="mb-5 mt-1 text-sm font-medium text-secondary">{id}</Text>
-    </TouchableOpacity>
+    </View>
   );
 }
 

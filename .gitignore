@@ -1,5 +1,7 @@
 node_modules
 ios/Pods
+android/.gradle/
 android/.gradle/*
+android/.gradle
 android/*
 ios/build/*

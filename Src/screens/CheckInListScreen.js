@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import firestore from "@react-native-firebase/firestore";
 import database from "@react-native-firebase/database";
+import auth from "@react-native-firebase/auth";
 import CheckInHeader from "../components/CheckInHeader";
 import Theme from "../utils/Theme";
 import CheckInSelection from "../components/CheckInSelection";
@@ -38,6 +39,9 @@ function MainScreen(props) {
 
   const [filterValue, setFilterValue] = useState("");
   const [visible, setVisible] = useState(false);
+
+
+  const currentUser = auth().currentUser;
 
   //main useEffect
   useEffect(() => {
@@ -121,16 +125,20 @@ function MainScreen(props) {
   const getTicketsForCheckInList = async (list) => {
     const results = [];
     setLoading(true);
-    const ticketsQuery = await firestore()
-      .collection("tickets")
-      .where("ticketType", "in", list[list.listId].includeConditions)
-      .where("productId", "==", list[list.listId].conferenceId)
-      .get();
     const tickets = [];
-
-    ticketsQuery.forEach((doc) => {
-      tickets.push(doc.data());
-    });
+    try {
+      const ticketsQuery = await firestore()
+        .collection("tickets")
+        .where("ticketType", "in", list[list.listId].includeConditions)
+        .where("productId", "==", list[list.listId].conferenceId)
+        .get();
+  
+      ticketsQuery.forEach((doc) => {
+        tickets.push(doc.data());
+      });
+    } catch (error) {
+      console.log(error)
+    }
     const userIds = [];
     for (const ticket of tickets) {
       if (ticket.uid && userIds.indexOf(ticket.uid) === -1) {
@@ -138,6 +146,7 @@ function MainScreen(props) {
       }
     }
 
+    console.log(userIds)
     const users = await Promise.all(
       userIds.map(async (uid) => {
         let user = null;
@@ -146,17 +155,17 @@ function MainScreen(props) {
           .once("value")
           .then((snapshot) => {
             user = snapshot.val();
+            user.uid = uid
           });
 
         return user;
       })
     );
+    // console.log(users)
     for (const ticket of tickets) {
       let user;
       if (ticket.uid) {
-        user = users.map((user) => {
-          user.uid === ticket.uid;
-        })[0];
+        user = users.filter((user) => user.uid === ticket.uid)[0];
       }
 
       const ticketInfo = {
@@ -164,27 +173,10 @@ function MainScreen(props) {
         ticketId: ticket.ticketId,
         ticketType: ticket.ticketType,
         ticketRef: ticket.ticketRef,
-        firstName: user?.firstName
-          ? user?.firstName
-          : ticket?.firstName
-          ? ticket?.firstName
-          : "Not Available",
-        lastName: user?.lastName
-          ? user?.lastName
-          : ticket?.lastName
-          ? ticket?.lastName
-          : "Not Available",
-        jobTitle: user?.jobTitle
-          ? user?.jobTitle
-          : ticket?.jobTitle
-          ? ticket?.jobTitle
-          : "Not Available",
-        company: user?.company
-          ? user?.company
-          : ticket?.company
-          ? ticket?.company
-          : "Not Available",
-
+        firstName: user?.firstName || ticket.firstName,
+        lastName: user?.lastName || ticket.lastName || '',
+        jobTitle: user?.jobTitle || ticket.jobTitle || '',
+        company: user?.company || ticket.company || '',
         email: ticket.email,
         qrcode: ticket.qrcode,
         isCheckedIn: ticket.isCheckedIn,
@@ -200,29 +192,33 @@ function MainScreen(props) {
     return results;
   };
   const observeCheckInList = (productId, listId) => {
-    firestore()
-      .collection(
-        "checkInLists/conferences/" +
-          productId +
-          "/" +
-          listId +
-          "/ticketCheckIns"
-      )
-      .onSnapshot((querySnapshot) => {
-        let tickets = []
-        if (querySnapshot) {
-          tickets = querySnapshot.docs.map((doc) => {
-            // console.log('called', doc.data())
-            // acc[doc.id] = {...doc.data()};
-            // docData.push(doc.data());
-  
-            return doc.data();
-          });
-        }
-        //console.log("tickets", tickets);
-        setCheckedInListTickets(tickets);
-        setLoading(false);
-      });
+    try {
+      firestore()
+        .collection(
+          "checkInLists/conferences/" +
+            productId +
+            "/" +
+            listId +
+            "/ticketCheckIns"
+        )
+        .onSnapshot((querySnapshot) => {
+          let tickets = []
+          if (querySnapshot) {
+            tickets = querySnapshot.docs.map((doc) => {
+              // console.log('called', doc.data())
+              // acc[doc.id] = {...doc.data()};
+              // docData.push(doc.data());
+    
+              return doc.data();
+            });
+          }
+          //console.log("tickets", tickets);
+          setCheckedInListTickets(tickets);
+          setLoading(false);
+        });
+    } catch (error) {
+      console.log(error)
+    }
     // console.log('results adsadafasdfs', results[0]);
   };
   const handleCheckInTicket = async (ticketRef, userId, checkIn) => {
@@ -260,17 +256,20 @@ function MainScreen(props) {
       }
     });
     setCheckInListTickets(checkInListTickets);
-
-    firestore()
-      .collection(
-        "checkInLists/conferences/" +
-          props.route.params.allData.conferenceId +
-          "/" +
-          props.route.params.allData.listId +
-          "/ticketCheckIns"
-      )
-      .doc(ticketRef)
-      .set(updatedTicket);
+    try {
+      firestore()
+        .collection(
+          "checkInLists/conferences/" +
+            props.route.params.allData.conferenceId +
+            "/" +
+            props.route.params.allData.listId +
+            "/ticketCheckIns"
+        )
+        .doc(ticketRef)
+        .set(updatedTicket);
+    } catch (error) {
+      console.log(error)
+    }
     // .then(() => getTicketsForCheckInList(props.route.params?.allData));
   };
   const playSound = (messageType, data) => {
@@ -288,24 +287,23 @@ function MainScreen(props) {
     });
   };
   const OnScan = (event) => {
-    // console.log('event', event);
+    console.log('event', event);
     if (!isScanned) {
       setIsScanned(true);
       try {
-        const ticketRef = JSON.parse(
-          event.nativeEvent.codeStringValue
-        ).ticketRef;
-        const userId = JSON.parse(event.nativeEvent.codeStringValue).userId;
+        const ticketRef = event.nativeEvent.codeStringValue
 
         if (ticketRef) {
           playSound("success");
           setOpenQRScanner(false);
           setIsScanned(false);
-          handleScannedData(ticketRef, userId);
+          handleScannedData(ticketRef, currentUser.uid);
         }
       } catch (error) {
+        console.log(error)
         playSound("negative");
         setFailure(true);
+        setIsScanned(false);
         setError("Invalid QR Code.");
       }
     }
@@ -331,7 +329,7 @@ function MainScreen(props) {
             }
           }
         });
-        handleCheckInTicket(userTicket.ticketRef, userTicket, true);
+        handleCheckInTicket(userTicket.ticketRef, uid, true);
       }
     }
   };
@@ -422,21 +420,17 @@ function MainScreen(props) {
               renderItem={({ item }) => (
                 <CheckInList
                   key={item.ticketRef}
-                  name={item.firstName}
+                  name={item.firstName ? item.firstName + ' ' + item.lastName : 'Not Available Yet'}
                   email={item.email}
                   attendee={"Attendee: " + item.ticketType}
                   id={item.ticketRef}
                   isCheckIn={item.isCheckedIn}
                   checkInPress={() => {
-                    if (item.isCheckedIn == true) {
-                      alert("Ticket is already scanned!");
-                    } else {
-                      handleCheckInTicket(
-                        item.ticketRef,
-                        item.userId,
-                        !item.isCheckedIn
-                      );
-                    }
+                    handleCheckInTicket(
+                      item.ticketRef,
+                      currentUser.uid,
+                      !item.isCheckedIn
+                    );
                   }}
                 />
               )}
@@ -456,7 +450,11 @@ function MainScreen(props) {
                     id={item.ticketRef}
                     isCheckIn={item.isCheckedIn}
                     checkInPress={() => {
-                      alert("Ticket is already scanned!");
+                      handleCheckInTicket(
+                        item.ticketRef,
+                        currentUser.uid,
+                        !item.isCheckedIn
+                      );
                     }}
                   />
                 )}

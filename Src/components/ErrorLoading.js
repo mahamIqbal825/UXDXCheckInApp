@@ -5,11 +5,11 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
-  error,
 } from 'react-native';
 import Modal from 'react-native-modal';
 
-function ErrorLoading({isVisible, onPress}) {
+function ErrorLoading({isVisible, onPress, error}) {
+  console.log(isVisible, onPress, error)
   return (
     <Modal isVisible={isVisible} backdropOpacity={0.8}>
       <View className="h-[90] w-[270] bg-white items-center justify-center rounded-lg self-center">

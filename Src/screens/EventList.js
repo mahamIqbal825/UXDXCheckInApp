@@ -38,27 +38,37 @@ function EventList({ navigation }) {
     filterData();
   }, [filterValue]);
   const getCheckInLists = async (uid) => {
-    const checkInListsQuery = await firestore()
-      .collection("checkInLists/admins/" + uid)
-      .get();
-    // console.log("checkInListsQuery.docs", checkInListsQuery.docs);
     let acc = [];
-    const checkInLists = checkInListsQuery.docs.map((doc) => {
-      const data = doc.data();
-      // console.log("list id", data.listId);
-      // listId = data.listId;
-      // setData(data)
-      acc.push(data);
-      return acc;
-    });
+    try {
+      const checkInListsQuery = await firestore()
+        .collection("checkInLists/admins/" + uid)
+        .get();
+      // console.log("checkInListsQuery.docs", checkInListsQuery.docs);
+      const checkInLists = checkInListsQuery.docs.map((doc) => {
+        const data = doc.data();
+        // console.log("list id", data.listId);
+        // listId = data.listId;
+        // setData(data)
+        acc.push(data);
+        return acc;
+      });
+
+    } catch (error) {
+      console.log("error", error);
+    }
     const hydratedCheckInLists = await Promise.all(
       acc.map(async (checkInList) => {
         // console.log("checkInList.conferenceId", checkInList.conferenceId);
-        const listDetails = await firestore()
-          .collection("checkInLists/conferences/" + checkInList.conferenceId)
-          .doc(checkInList.listId)
-          .get();
-        const listDetailsData = listDetails.data();
+        let listDetailsData = {}
+        try {
+          const listDetails = await firestore()
+            .collection("checkInLists/conferences/" + checkInList.conferenceId)
+            .doc(checkInList.listId)
+            .get();
+          listDetailsData = listDetails.data();
+        } catch (error) {
+          console.log("error", error);
+        }
         // console.log("listDetailsData", listDetailsData);
         // console.log(
         //   'listDatezzz',
